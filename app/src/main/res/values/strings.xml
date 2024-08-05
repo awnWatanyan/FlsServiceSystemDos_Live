@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">FlsServiceSystem</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="imei">IMEI</string>
+    <string name="field_service_tracking">Field Service System</string>
+    <string name="login">Login</string>
+    <string name="title_activity_home">HomeActivity</string>
+    <string name="tab_text_1">Tab 1</string>
+    <string name="tab_text_2">Tab 2</string>
+    <string name="printting_text">Printting</string>
+    <string name="printer_connecting">Printer Connecting...</string>
+    <string name="error">Error</string>
+    <string name="file_not_found">Print Error: File Not Found</string>
+    <string name="cannot_connect_printer">Cannot connect to printer</string>
+    <string name="printer_connected">Printer Connected</string>
+    <string name="printer_not_found">Not have any printer connect to this device</string>
+    <string name="printer_not_match">Printer not correct with staff code</string>
+    <string name="download_file">Downloading File</string>
+    <string name="print_error">Print Error</string>
+    <string name="print_complete">Print Complete</string>
+    <string name="print_next_doc">Print Next Document</string>
+    <string name="print_btn">Print</string>
+    <string name="back_to_web">Back to Website</string>
+    <string name="out_of_ribbon">Out of ribbon</string>
+    <string name="out_of_paper">Out of paper</string>
+    <string name="printer_head_open">Printer Head is open</string>
+    <string name="priner_too_hot">Printer is too hot</string>
+    <string name="printer_too_cold">Printer is too cold</string>
+    <string name="printer_not_ready">Printer is not ready please reset</string>
+    <string name="update_print_result_fail">Print Update Failed</string>
+    <string name="update_print_result_success">Print Update Success</string>
+</resources>

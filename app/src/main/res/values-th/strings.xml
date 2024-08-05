@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FlsServiceSystem</string>
+    <string name="username">ชื่อผู้ใช้</string>
+    <string name="password">รหัสผ่าน</string>
+    <string name="imei">IMEI</string>
+    <string name="field_service_tracking">Field Service System</string>
+    <string name="login">เข้าสู่ระบบ</string>
+    <string name="title_activity_home">HomeActivity</string>
+    <string name="tab_text_1">Tab 1</string>
+    <string name="tab_text_2">Tab 2</string>
+    <string name="printting_text">กำลังพิมพ์เอกสาร</string>
+    <string name="printer_connecting">กำลังเชื่อมต่อปริ้นเตอร์</string>
+    <string name="error">ผิดพลาด</string>
+    <string name="file_not_found">ไม่พบเอกสารที่ต้องการพิมพ์</string>
+    <string name="cannot_connect_printer">ไม่สามารถเชื่อมต่อปริ้นเตอร์ได้</string>
+    <string name="printer_connected">เชื่อมต่อปริ้นเตอร์สำเร็จ</string>
+    <string name="printer_not_found">ไม่เจอปริ้นเตอร์ที่เชื่อมต่ออยู่</string>
+    <string name="printer_not_match">ปริ้นเตอร์ไม่ตรงกับที่ลงทะเบียนไว้</string>
+    <string name="download_file">กำลังโหลดเอกสาร</string>
+    <string name="print_error">พิมพ์ไม่สำเร็จ</string>
+    <string name="print_complete">พิมพ์เอกสารเรียบร้อย</string>
+    <string name="print_next_doc">พิมพ์เอกสารถัดไป</string>
+    <string name="print_btn">พิมพ์เอกสาร</string>
+    <string name="back_to_web">กลับสู่หน้าจองาน</string>
+    <string name="out_of_ribbon">ปริ้นเตอร์หมึกหมด</string>
+    <string name="out_of_paper">ปริ้นเตอร์กระดาษหมด</string>
+    <string name="printer_head_open">ปริ้นเตอร์ถูกเปิดช่องใส่กระดาษ</string>
+    <string name="priner_too_hot">ปริ้นเตอร์ร้อนเกินไป</string>
+    <string name="printer_too_cold">ปริ้นเตอร์เย็นเกินไป</string>
+    <string name="printer_not_ready">ปริ้นเตอร์ไม่สามารถทำงานได้ กรุณารีเซ็ตปริ้นเตอร์</string>
+    <string name="update_print_result_fail">ไม่สามารถส่งผลการเข้าหาได้ กรุณาส่งผลการเข้าหาใหม่อีกครั้ง</string>
+    <string name="update_print_result_success">ส่งผลการเข้าหาเรียบร้อย</string>
+</resources>
