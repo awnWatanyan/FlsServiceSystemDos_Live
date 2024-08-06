@@ -236,10 +236,10 @@ class PrintActivity : AppCompatActivity() {
             // 1 cm = 80 dot
             val labelDot = 203
 
-            val bluetoothListForConnect = getPairedPrinters()
+            val bluetoothListForConnect = getPairedPrinters(bluetoothDeviceName)
             if(bluetoothListForConnect.size > 0)
             {
-                adapter = BluetoothDeviceArrayAdapter(contextMain, getPairedPrinters())
+                adapter = BluetoothDeviceArrayAdapter(contextMain, getPairedPrinters(bluetoothDeviceName))
             }
             else
             {
@@ -578,12 +578,17 @@ class PrintActivity : AppCompatActivity() {
 
 
         @SuppressLint("MissingPermission")
-        private fun getPairedPrinters(): ArrayList<BluetoothDevice> {
+        private fun getPairedPrinters(deviceName: String): ArrayList<BluetoothDevice> {
             val mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
             val pairedDevices = mBluetoothAdapter.getBondedDevices()
             val pairedDevicesList = ArrayList<BluetoothDevice>()
             for (device in pairedDevices) {
-                if (isBluetoothPrinter(device)) pairedDevicesList.add(device)
+                if (isBluetoothPrinter(device))
+                {
+                    if(device.name.equals(deviceName))
+                        pairedDevicesList.add(device)
+                }
+
             }
             return pairedDevicesList
         }
