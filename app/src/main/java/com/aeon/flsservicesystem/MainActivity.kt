@@ -210,7 +210,8 @@ class MainActivity : AppCompatActivity() {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(this, TrackingBroadcastReceiver::class.java)
         val pendingIntent =
-            PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            PendingIntent.getBroadcast(this, 0, intent
+                , PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
         alarmManager.setRepeating(
             AlarmManager.ELAPSED_REALTIME_WAKEUP,
@@ -410,7 +411,7 @@ class MainActivity : AppCompatActivity() {
         builder.setShowTitle(false)
         val menuItemIntent = Intent(this, CustomTabMenuActivity::class.java)
         builder.setInstantAppsEnabled(true)
-        val pendingIntent = PendingIntent.getActivity(this, 0, menuItemIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+        //val pendingIntent = PendingIntent.getActivity(this, 0, menuItemIntent, PendingIntent.FLAG_UPDATE_CURRENT)
         //builder.addMenuItem("Custom Menu Item", pendingIntent)
 
 
