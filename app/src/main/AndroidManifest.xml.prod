@@ -36,9 +36,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_launcher_new_url"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/ic_launcher_new_url_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.FlsServiceSystem"
         android:debuggable="false"
@@ -91,7 +91,7 @@
                 <!-- on below line we are specifying the host name and
                     the scheme type from which we will be calling our app -->
                 <data android:scheme="flsprint_prod"
-                        android:host="www.mcimb.com"/>
+                    android:host="www.mcimb.com"/>
             </intent-filter>
         </activity>
         <activity android:name=".WebActivity" />
@@ -120,10 +120,10 @@
 
 
         <!----><provider
-            android:name=".provider.OrderProvider"
-            android:authorities="com.aeon.flsservicesystem.provider"
-            android:syncable="true"
-            android:exported="false" />
+        android:name=".provider.OrderProvider"
+        android:authorities="com.aeon.flsservicesystem.provider"
+        android:syncable="true"
+        android:exported="false" />
 
 
         <service android:name=".tracking.TrackingUpdateService"
@@ -143,9 +143,9 @@
 
         <receiver android:name=".tracking.TrackingBroadcastReceiver"
             android:exported="false">
-         <!--   <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>-->
+            <!--   <intent-filter>
+                   <action android:name="android.intent.action.BOOT_COMPLETED" />
+               </intent-filter>-->
         </receiver>
         <receiver android:name=".tracking.BootReceiver"
             android:exported="true">
