@@ -74,7 +74,8 @@
         </activity>
 
         <activity
-            android:name="com.aeon.flsservicesystem.print.PrintActivity"
+            android:name=".print.PrintActivity"
+            android:excludeFromRecents="true"
             android:exported="true">
 
             <intent-filter android:autoVerify="true">
@@ -96,8 +97,29 @@
         <activity android:name=".WebActivity" />
 
 
+        <activity
+            android:name=".tracking.GetLocationActivity"
+            android:exported="true">
 
-        <provider
+            <intent-filter android:autoVerify="true">
+                <!-- below line is to set the action to our intent to view -->
+                <action android:name="android.intent.action.VIEW" />
+
+                <!-- on below line we are adding a default category to our intent -->
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <!-- on below line we are adding a category to make our app browsable -->
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <!-- on below line we are specifying the host name and
+                    the scheme type from which we will be calling our app -->
+                <data android:scheme="flslocation"
+                    android:host="www.mcimb.com"/>
+            </intent-filter>
+        </activity>
+
+
+        <!----><provider
             android:name=".provider.OrderProvider"
             android:authorities="com.aeon.flsservicesystem.provider"
             android:syncable="true"

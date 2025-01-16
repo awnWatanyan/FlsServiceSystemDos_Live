@@ -31,4 +31,7 @@
     <string name="printer_not_ready">ปริ้นเตอร์ไม่สามารถทำงานได้ กรุณารีเซ็ตปริ้นเตอร์</string>
     <string name="update_print_result_fail">ไม่สามารถส่งผลการเข้าหาได้ กรุณาส่งผลการเข้าหาใหม่อีกครั้ง</string>
     <string name="update_print_result_success">ส่งผลการเข้าหาเรียบร้อย</string>
+    <string name="getting_location">กำลังส่งผลการเข้าหา</string>
+    <string name="getting_location_finish">ส่งผลการเข้าหาเรียบร้อย</string>
+    <string name="getting_location_failed">ส่งผลการเข้าหาล้มเหลว</string>
 </resources>

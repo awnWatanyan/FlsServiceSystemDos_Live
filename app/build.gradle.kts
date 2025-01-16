@@ -15,8 +15,8 @@ android {
         applicationId = "com.aeon.flsservicesystem"
         minSdk = 26
         targetSdk = 34
-        versionCode = 3
-        versionName = "1.2"
+        versionCode = 5
+        versionName = "1.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -74,7 +74,7 @@ dependencies {
     implementation(libs.timber)
     implementation(files("lib/ZSDK_ANDROID_API.jar"))
 
-
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
     implementation(libs.android.gms.playServiceLocation)
     implementation(libs.volley)
     implementation("androidx.browser:browser:1.4.0")

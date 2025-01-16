@@ -20,11 +20,14 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat.registerReceiver
+import androidx.lifecycle.lifecycleScope
 import com.aeon.flsservicesystem.PREFS_KEY_IS_LOGIN
 import com.aeon.flsservicesystem.R
 import com.aeon.flsservicesystem.callurl
 import com.aeon.flsservicesystem.pathSeqment
 import com.aeon.flsservicesystem.scheme
+import com.aeon.flsservicesystem.tracking.GetLocationService
+import com.aeon.flsservicesystem.tracking.LocationData
 import com.pixplicity.easyprefs.library.Prefs
 import com.zebra.isv.tapbluetoothwifi.BluetoothDeviceArrayAdapter
 import java.io.ByteArrayOutputStream
@@ -38,6 +41,7 @@ import com.zebra.sdk.comm.Connection
 import com.zebra.sdk.comm.ConnectionException
 import com.zebra.sdk.printer.SGD
 import com.zebra.sdk.printer.ZebraPrinterFactory
+import kotlinx.coroutines.launch
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.HttpUrl
@@ -58,6 +62,9 @@ class PrintActivity : AppCompatActivity() {
         private var totalPage = 0;
         private var printSuccess = 200;
         private var printMessage = "";
+        private var printerMessage="";
+        private lateinit var getLocationService : GetLocationService
+        private lateinit var locationData: LocationData
         fun  getCurrentPageValue(): Int{
 
             return currentPage
@@ -124,10 +131,25 @@ class PrintActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("MissingSuperCall")
+    override fun onBackPressed(){
+        //super.onBackPressed()
+
+    }
+
     @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        getLocationService = GetLocationService(this)
+
+        lifecycleScope.launch {
+            locationData = getLocationService.getCurrentLocationData()!!
+            if(locationData == null)
+            {
+                locationData = LocationData("0.0","0.0","0","0")
+            }
+        }
 
 
         setContentView(R.layout.activity_print)
@@ -153,7 +175,7 @@ class PrintActivity : AppCompatActivity() {
             exitProcess(-1)*/
 
 
-            finish()
+            finishAndRemoveTask()
         }
         uri = intent.data
 
@@ -279,12 +301,14 @@ class PrintActivity : AppCompatActivity() {
                 else
                 {
                     textPrinterDisplay.text = contextMain.getString(R.string.cannot_connect_printer)
+                    printerMessage = textPrinterDisplay.text.toString()
                     return  contextMain.getString(R.string.printer_not_found)
                 }
                 if(printer == null)
                 {
                     textPrinterDisplay.text = contextMain.getString(R.string.cannot_connect_printer)
-                        return  contextMain.getString(R.string.printer_not_match)
+                    printerMessage = textPrinterDisplay.text.toString()
+                    return  contextMain.getString(R.string.printer_not_match)
                 }
 
                 val printerAddress = printer!!.address
@@ -299,13 +323,16 @@ class PrintActivity : AppCompatActivity() {
                     try {
                         conn.open()
                         textPrinterDisplay.text = contextMain.getString(R.string.printer_connected)
-
+                        printerMessage = textPrinterDisplay.text.toString()
                     } catch (e: ConnectionException) {
                         //Log.e(tag, "Connection Failed: " + e.message)
                         textPrinterDisplay.text = contextMain.getString(R.string.cannot_connect_printer)
-                        return e.message
+                        printerMessage = textPrinterDisplay.text.toString()
+                        return e.printStackTrace().toString()
                     } catch (e: java.lang.Exception) {
-                        e.printStackTrace()
+                        textPrinterDisplay.text = contextMain.getString(R.string.cannot_connect_printer)
+                        printerMessage = textPrinterDisplay.text.toString()
+                        return e.printStackTrace().toString()
                     }
 
                 }
@@ -335,6 +362,7 @@ class PrintActivity : AppCompatActivity() {
                 else
                 {
                     textPrinterDisplay.text = contextMain.getString(R.string.print_error)
+                    printerMessage = textPrinterDisplay.text.toString()
 
                     if(printerStatus.isHeadOpen)
                     {
@@ -399,6 +427,8 @@ class PrintActivity : AppCompatActivity() {
                 if(url == null)
                 {
                     textPrinterDisplay.text = contextMain.getString(R.string.print_error)
+                    printerMessage = textPrinterDisplay.text.toString()
+
                     return contextMain.getString(R.string.file_not_found)
                 }
                /* else{
@@ -467,6 +497,8 @@ class PrintActivity : AppCompatActivity() {
                 //Log.e(logTag, e.printStackTrace().toString())
                 //textPrinterDisplay.text = "Error"
                 textPrinterDisplay.text = contextMain.getString(R.string.print_error)
+                printerMessage = textPrinterDisplay.text.toString()
+
                 //return "Print Error: File Not Found"
                 return contextMain.getString(R.string.file_not_found)
             }
@@ -474,7 +506,9 @@ class PrintActivity : AppCompatActivity() {
                 e.printStackTrace()
                 Log.e(logTag, e.printStackTrace().toString())
                 textPrinterDisplay.text = contextMain.getString(R.string.error)
-                return contextMain.getString(R.string.print_error)  + " : $e.message"
+                printerMessage = textPrinterDisplay.text.toString()
+
+                return contextMain.getString(R.string.print_error)  + " : ${e.printStackTrace().toString()}"
 
             } finally {
                 disconnectDevice(conn)
@@ -525,7 +559,13 @@ class PrintActivity : AppCompatActivity() {
                 .addPathSegment(pathSeqment)
                 .addPathSegment("SubmitCollectorResult")
 
-            val requestBody = "{\"status\":\"$printSuccess\",\"msg\":\"$printMessage\",\"pntToken\":\"$printToken\"}"
+            val requestBody = "{\"status\":\"$printSuccess\",\"msg\":\"$printerMessage:$printMessage\",\"pntToken\":\"$printToken\"," +
+                    "\"resultToken\":\"\"," +
+                    "\"trackingLatitude\":\"${locationData.trackingLatitude}\"," +
+                    "\"trackingLongitude\":\"${locationData.trackingLongitude}\"," +
+                    "\"trackingBattery\":\"${locationData.trackingBattery}\"," +
+                    "\"trackingSpeed\":\"${locationData.trackingSpeed}\"" +
+                    "}"
             val body = requestBody.toRequestBody("application/json".toMediaType())
 
             val request = Request.Builder()

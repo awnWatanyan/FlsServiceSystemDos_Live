@@ -1,5 +1,6 @@
 package com.aeon.flsservicesystem
 
+import android.Manifest
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
@@ -8,9 +9,12 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.Rect
+import android.location.Location
 import android.net.Uri
+import android.os.BatteryManager
 import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
@@ -25,7 +29,9 @@ import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.telephony.TelephonyManagerCompat.getImei
 import androidx.core.view.ViewCompat
+import androidx.core.view.ViewCompat.animate
 import androidx.core.view.WindowInsetsCompat
 import androidx.room.Room
 import com.aeon.flsservicesystem.databinding.ActivityMainBinding
@@ -35,6 +41,9 @@ import com.aeon.flsservicesystem.user_manager.DeviceData
 import com.aeon.flsservicesystem.user_manager.DeviceDatabase
 import com.aeon.flsservicesystem.user_manager.User
 import com.aeon.flsservicesystem.user_manager.UserDatabase
+import com.aeon.flsservicesystem.R
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.pixplicity.easyprefs.library.Prefs
 import okhttp3.Call
 import okhttp3.Callback
@@ -45,6 +54,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.json.JSONObject
+import java.io.IOException
 import java.security.MessageDigest
 
 
@@ -53,6 +63,7 @@ class MainActivity : AppCompatActivity() {
     private val BACKGROUND_LOCATION_PERMISSION_REQUEST_CODE = 456
     private val LOCATION_PERMISSION_REQUEST_CODE = 123
     private lateinit var binding: ActivityMainBinding
+    private lateinit var fuesdLocationClient: FusedLocationProviderClient
 
     private val dataBaseUser = "database-user"
     private val dataBaseDevice = "database-device"
@@ -74,7 +85,7 @@ class MainActivity : AppCompatActivity() {
         // Request focus programmatically
         imeiEditText.requestFocus()
         imeiEditText.postDelayed({
-            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
             imm.showSoftInput(imeiEditText, InputMethodManager.SHOW_IMPLICIT)
         }, 100)
 
@@ -108,7 +119,7 @@ class MainActivity : AppCompatActivity() {
 
         Prefs.Builder()
             .setContext(this)
-            .setMode(ContextWrapper.MODE_PRIVATE)
+            .setMode(MODE_PRIVATE)
             .setPrefsName(packageName)
             .setUseDefaultSharedPreference(true)
             .build()
@@ -198,7 +209,7 @@ class MainActivity : AppCompatActivity() {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             (ContextCompat.checkSelfPermission(
                 this,
-                android.Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
             ) == PackageManager.PERMISSION_GRANTED)
         } else {
             return true
@@ -207,7 +218,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun scheduleAlarm() {
-        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
         val intent = Intent(this, TrackingBroadcastReceiver::class.java)
         val pendingIntent =
             PendingIntent.getBroadcast(this, 0, intent
@@ -225,7 +236,7 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(android.Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
                 BACKGROUND_LOCATION_PERMISSION_REQUEST_CODE
             )
         }
@@ -234,11 +245,11 @@ class MainActivity : AppCompatActivity() {
     private fun checkLocationPermission(): Boolean {
         return (ContextCompat.checkSelfPermission(
             this,
-            android.Manifest.permission.ACCESS_FINE_LOCATION
+            Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(
                     this,
-                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+                    Manifest.permission.ACCESS_COARSE_LOCATION
                 ) == PackageManager.PERMISSION_GRANTED)
     }
 
@@ -246,8 +257,8 @@ class MainActivity : AppCompatActivity() {
         ActivityCompat.requestPermissions(
             this,
             arrayOf(
-                android.Manifest.permission.ACCESS_FINE_LOCATION,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
             ),
             LOCATION_PERMISSION_REQUEST_CODE
         )
@@ -269,7 +280,7 @@ class MainActivity : AppCompatActivity() {
             .post(body)
             .build()
         client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: java.io.IOException) {
+            override fun onFailure(call: Call, e: IOException) {
 // Handle failure
                 Prefs.putBoolean(PREFS_KEY_IS_LOGIN, false)
                 showProgress(false)
@@ -332,7 +343,7 @@ class MainActivity : AppCompatActivity() {
             .post(body)
             .build()
         client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: java.io.IOException) {
+            override fun onFailure(call: Call, e: IOException) {
 // Go to login page
                 Prefs.putBoolean(PREFS_KEY_IS_LOGIN, false)
                 showToastResult("Error:Connection Cannot Connect")
@@ -398,41 +409,82 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun redirectToLogin(token: String) {
-        val httpUrl = HttpUrl.Builder().scheme(scheme).host(callurl)
-            .addPathSegment(pathSeqment)
-            .addPathSegment("Login")
-            .addQueryParameter("token", token)
+        fuesdLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        val builder = CustomTabsIntent.Builder()
-        val params = CustomTabColorSchemeParams.Builder()
-        params.setToolbarColor(ContextCompat.getColor(this@MainActivity, R.color.white))
-       builder.setShareState(CustomTabsIntent.SHARE_STATE_OFF)
-        builder.setDefaultColorSchemeParams(params.build())
-        builder.setShowTitle(false)
-        val menuItemIntent = Intent(this, CustomTabMenuActivity::class.java)
-        builder.setInstantAppsEnabled(true)
-        //val pendingIntent = PendingIntent.getActivity(this, 0, menuItemIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-        //builder.addMenuItem("Custom Menu Item", pendingIntent)
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestLocationPermission()
+        }
+        fuesdLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+            location?.let {
+                val latitude = it.latitude.toString()
+                val longitude = it.longitude.toString()
+                val speed = it.speed.toString()
+
+                val batteryStatus: Intent? = registerReceiver(
+                    null, IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+                )
+                var batteryPercent = "";
+                batteryStatus?.let {
+                    val level = it.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+                    val scale = it.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+                    batteryPercent = (level / scale.toFloat() * 100).toString()
+                }
+                val httpUrl = HttpUrl.Builder().scheme(scheme)
+                    .host(callurl)
+                    .addPathSegment(pathSeqment)
+                    .addPathSegment("Login")
+                    .addQueryParameter("token", token)
+                    .addQueryParameter("tracking_latitude", latitude)
+                    .addQueryParameter("tracking_longitude", longitude)
+                    .addQueryParameter("tracking_battery", batteryPercent)
+                    .addQueryParameter("tracking_speed", speed)
 
 
-        val customBuilder = builder.build()
+                val builder = CustomTabsIntent.Builder()
+                val params = CustomTabColorSchemeParams.Builder()
+                params.setToolbarColor(ContextCompat.getColor(this@MainActivity, R.color.white))
+                builder.setShareState(CustomTabsIntent.SHARE_STATE_OFF)
+                builder.setDefaultColorSchemeParams(params.build())
+                builder.setShowTitle(false)
+                val menuItemIntent =
+                    Intent(this, CustomTabMenuActivity::class.java)
+                builder.setInstantAppsEnabled(true)
 
-        if (this.isPackageInstalled(packageName)) {
+                //  val pendingIntent = PendingIntent.getActivity(this, 0, menuItemIntent
+                //      , PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                //builder.addMenuItem("Custom Menu Item", pendingIntent)
+
+
+                val customBuilder = builder.build()
+
+                if (this.isPackageInstalled(packageName)) {
 // if chrome is available use chrome custom tabs
-           // customBuilder.intent.setPackage(packageName)
-            customBuilder.intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                    // customBuilder.intent.setPackage(packageName)
+                    customBuilder.intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
 
-            customBuilder.launchUrl(this, Uri.parse(httpUrl.build().toString()))
-        } else {
+                    customBuilder.launchUrl(this, Uri.parse(httpUrl.build().toString()))
+                } else {
 // if not available use WebView to launch the url
-            val browserIntent =
-                Intent.makeMainSelectorActivity(Intent.ACTION_MAIN, Intent.CATEGORY_APP_BROWSER)
-            browserIntent.setData(Uri.parse(httpUrl.build().toString()))
-            startActivity(browserIntent)
+                    val browserIntent =
+                        Intent.makeMainSelectorActivity(
+                            Intent.ACTION_MAIN,
+                            Intent.CATEGORY_APP_BROWSER
+                        )
+                    browserIntent.setData(Uri.parse(httpUrl.build().toString()))
+                    startActivity(browserIntent)
 
 
-        }/**/
+                }
 
+            }/**/
+        }
        /* val intent = Intent(this, WebActivity::class.java)
         // Pass the URL as an intent extra
         intent.putExtra("URL", Uri.parse(httpUrl.build().toString()).toString())

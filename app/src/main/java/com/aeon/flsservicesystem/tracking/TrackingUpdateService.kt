@@ -14,6 +14,7 @@ import android.location.Location
 import android.os.BatteryManager
 import android.os.Build
 import android.os.IBinder
+import android.os.Looper
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -25,8 +26,11 @@ import com.aeon.flsservicesystem.MainActivity
 import com.aeon.flsservicesystem.R
 import com.aeon.flsservicesystem.user_manager.UserDatabase
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
-
+import com.google.android.gms.location.Priority
 
 
 class TrackingUpdateService : Service() {
@@ -85,12 +89,38 @@ class TrackingUpdateService : Service() {
             // Handle the case where permissions are not granted
             return
         }
+        val locationRequest = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY,5000L).setMaxUpdates(1).build()
+        val locationCallBack = object : LocationCallback()
+        {
+            override fun onLocationResult(locationResult: LocationResult) {
+                var canGetLocation = false;
+                for (location in locationResult.locations)
+                {
+                    canGetLocation = true
+                    updateNotification(location)
+                }
+                if(!canGetLocation)
+                {
+                    fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+                        location?.let {
+                            updateNotification(it)
+                        }
+                    }
+                }
 
-        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+
+            }
+        }
+
+        fusedLocationClient.requestLocationUpdates(locationRequest,locationCallBack,Looper.getMainLooper())
+
+       /* fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
             location?.let {
                 updateNotification(it)
             }
-        }
+        }*/
+
         onDestroy()
     }
 

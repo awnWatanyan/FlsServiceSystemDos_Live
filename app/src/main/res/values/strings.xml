@@ -30,4 +30,7 @@
     <string name="printer_not_ready">Printer is not ready please reset</string>
     <string name="update_print_result_fail">Print Update Failed</string>
     <string name="update_print_result_success">Print Update Success</string>
+    <string name="getting_location">Getting Location...</string>
+    <string name="getting_location_finish">Getting Location Finish</string>
+    <string name="getting_location_failed">Getting Location Failed</string>
 </resources>
